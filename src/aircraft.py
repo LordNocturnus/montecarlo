@@ -14,6 +14,8 @@ class Aircraft:
         self.wait_time = 0.0
         self.repair_time = 0.0
 
+        self.state = 0
+
         self.action = self.env.process(self.run())
 
     @property
@@ -22,21 +24,32 @@ class Aircraft:
 
     def run(self, limit=7):
         while self.env.now <= limit:
-            start_flight = self.env.now
+            self.start = self.env.now
             if self.printing:
                 print(f"{self.env.now}: Aicraft {self.id} flying")
-            yield self.env.timeout(self.rng.exponential(0.2))
-            self.flight_time += self.env.now - start_flight
+            self.state = 0
+            yield self.env.timeout(self.rng.exponential(1/0.2))
+            self.flight_time += self.env.now - self.start
 
             with self.repair_shop.request() as req:
-                start_wait = self.env.now
-
+                self.start = self.env.now
                 if self.printing:
                     print(f"{self.env.now}: Aicraft {self.id} waiting")
+                self.state = 1
                 yield req
-                self.wait_time += self.env.now - start_wait
-                start_repair = self.env.now
+                self.wait_time += self.env.now - self.start
+
+                self.start = self.env.now
                 if self.printing:
                     print(f"{self.env.now}: Aicraft {self.id} repairing")
+                self.state = 2
                 yield self.env.timeout(self.rng.normal(0.25, 0.05))
-                self.repair_time += self.env.now - start_repair
+                self.repair_time += self.env.now - self.start
+
+    def post_process(self, limit=7):
+        if self.state == 0:
+            self.flight_time += limit - self.start
+        elif self.state == 1:
+            self.wait_time += limit - self.start
+        elif self.state == 2:
+            self.repair_time += limit - self.start

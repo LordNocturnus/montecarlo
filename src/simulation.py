@@ -28,7 +28,9 @@ class Simulation:
                 aircraft.append(Aircraft(repair_shop, env, run * 10 + i))
 
             # run simulation
-            env.run()
+            env.run(until=7)
+            for a in aircraft:
+                a.post_process()
             print(f"finished run {run}")
 
             # store results

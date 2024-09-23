@@ -2,8 +2,10 @@ import numpy as np
 
 from src.simulation import Simulation
 
-sim = Simulation(1)
+sim = Simulation(50)
 
 sim.run()
 
-downtime = np.sum(np.asarray([sim.down_time_sim(r) for r in range(1)]), 1)
+total_downtime = np.sum(np.asarray([sim.down_time_sim(r) for r in range(50)]), 1)
+avr = np.average(total_downtime)
+prob = len(total_downtime[total_downtime >= 4])/len(total_downtime)
