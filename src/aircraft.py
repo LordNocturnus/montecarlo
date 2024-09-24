@@ -14,7 +14,7 @@ class Aircraft:
         self.wait_time = 0.0
         self.repair_time = 0.0
 
-        self.state = 0
+        self.state = 0 # 0 => flying, 1 => waiting 2 => being repaired
 
         self.action = self.env.process(self.run())
 
@@ -23,11 +23,14 @@ class Aircraft:
         return self.wait_time + self.repair_time
 
     def run(self, limit=7):
+
         while self.env.now <= limit:
+
             self.start = self.env.now
             if self.printing:
                 print(f"{self.env.now}: Aicraft {self.id} flying")
             self.state = 0
+            # Airraft is in flight
             yield self.env.timeout(self.rng.exponential(1/0.2))
             self.flight_time += self.env.now - self.start
 
@@ -36,17 +39,20 @@ class Aircraft:
                 if self.printing:
                     print(f"{self.env.now}: Aicraft {self.id} waiting")
                 self.state = 1
+                # Airraft is waiting for repair
                 yield req
                 self.wait_time += self.env.now - self.start
 
                 self.start = self.env.now
                 if self.printing:
                     print(f"{self.env.now}: Aicraft {self.id} repairing")
+                # Airraft is being repaired
                 self.state = 2
                 yield self.env.timeout(self.rng.normal(0.25, 0.05))
                 self.repair_time += self.env.now - self.start
 
     def post_process(self, limit=7):
+        # run for each aircraft after each simulation
         if self.state == 0:
             self.flight_time += limit - self.start
         elif self.state == 1:

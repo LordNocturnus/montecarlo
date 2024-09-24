@@ -1,8 +1,6 @@
 import simpy
 import numpy as np
-import itertools
 
-from src.TracedResource import TracedResource
 from src.aircraft import Aircraft
 
 
@@ -11,7 +9,6 @@ class Simulation:
     def __init__(self, runs=1):
         self.runs = runs
 
-        self.resourceLog = []
         self.aircraftLog = []
 
     def run(self):
@@ -21,7 +18,7 @@ class Simulation:
         for run in range(self.runs):
             env = simpy.Environment()
 
-            repair_shop = TracedResource(env, 1)
+            repair_shop = simpy.Resource(env, 1)
 
             aircraft = []
             for i in range(10):
@@ -29,13 +26,14 @@ class Simulation:
 
             # run simulation
             env.run(until=7)
+            # run postprocess for each aircraft
             for a in aircraft:
                 a.post_process()
             print(f"finished run {run}")
 
             # store results
-            self.resourceLog.append(repair_shop)
             self.aircraftLog.append(aircraft)
 
     def down_time_sim(self, sim):
+        # collect downtime for each aircraft in a specific run
         return np.asarray([a.down_time for a in self.aircraftLog[sim]])
