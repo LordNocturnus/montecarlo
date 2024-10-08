@@ -1,13 +1,14 @@
 import simpy
 import numpy as np
 
-from src.aircraft import Aircraft
+from src.aircraft import Aircraft, interrupt
 
 
 class Simulation:
 
-    def __init__(self, runs=1):
+    def __init__(self, runs, rng):
         self.runs = runs
+        self.rng = rng
 
         self.aircraftLog = []
 
@@ -22,14 +23,12 @@ class Simulation:
 
             aircraft = []
             for i in range(10):
-                aircraft.append(Aircraft(repair_shop, env, run * 10 + i))
+                aircraft.append(Aircraft(repair_shop, env, run * 10 + i, self.rng, False))
+            env.process(interrupt(env, aircraft, 7))
 
             # run simulation
-            env.run(until=7)
-            # run postprocess for each aircraft
-            for a in aircraft:
-                a.post_process()
-            print(f"finished run {run}")
+            env.run()
+            #print(f"finished run {run}")
 
             # store results
             self.aircraftLog.append(aircraft)
