@@ -2,6 +2,7 @@
 # Programmer: Ludolf Meester, Etienne Guichard
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # Reading data and setup list of edges
 filename = 'airport-graph.txt'
@@ -96,7 +97,9 @@ pbs = [0.0]*len(qs)
 N = len(edges)
 for index, q in enumerate(qs):
     for k in ks_all:
-        p_y_eq_k = q**k * (1-q)**(N - k)
+        if k == 0:
+            continue
+        p_y_eq_k = q**k * (1-q)**(N - k) * math.comb(N, k)
         p_b_given_y = prob_all[k-1]
         pbs[index] += p_b_given_y*p_y_eq_k
 
