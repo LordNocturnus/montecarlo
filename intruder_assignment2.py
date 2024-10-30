@@ -84,7 +84,21 @@ print(se_arr)
 
 phat = np.dot(a_arr, prob_arr)
 
+se_tot = np.sqrt(
+    np.dot(a_arr**2, se_arr**2)
+)
+
 print(phat)
+print(se_tot)
+
+se_rel = se_tot / phat
+
+target_ses_rel = np.array([0.1, 0.01])
+
+ns = 1000 * (se_rel / target_ses_rel) ** 2
+
+print(se_rel)
+print(ns)
 
 # prob_all = np.empty(len(edges), dtype=float)
 # ks_all = np.arange(0, len(edges), 1)
