@@ -51,3 +51,14 @@ class Simulation:
     def mean_sojourn_time(self):
         return np.mean(self.sojourn_times)
 
+    def weekly_total_sojourn(self):
+        # Initialize weekly sums for the specified number of weeks
+        weekly_sums = [0] * self.weeks
+
+        # Sum sojourn times into the week containing the end time
+        for end_time, sojourn_time in zip(self.end_times, self.sojourn_times):
+            week_index = int(end_time // 7)  # Determine the week index
+            weekly_sums[week_index] += sojourn_time
+
+        return np.array(weekly_sums)
+
