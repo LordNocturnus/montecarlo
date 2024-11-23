@@ -1,14 +1,21 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from src.simulation import Simulation
 
 # run sim
-sim = Simulation(50)
+sim = Simulation(runs=1, weeks=500, exp_parameter=0.3)
 sim.run()
 
 # postprocess data collected
-total_downtime = np.sum(np.asarray([sim.down_time_sim(r) for r in range(50)]), 1)
+# total_downtime = sim.down_time_sim()
 
-print(np.average(total_downtime)) # average week downtime
+print(sim.mean_sojourn_time())
 
-print(len(total_downtime[total_downtime >= 4])/len(total_downtime)) # probability of downtime >= 4 days
+# print(sim.sojourn_times)
+
+# plt.hist(sim.sojourn_times, bins=50)
+# plt.show()
+
+# plt.scatter(sim.end_times, sim.sojourn_times)
+# plt.show()
