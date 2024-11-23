@@ -53,6 +53,39 @@ for param in [0.1, 0.3]:
     # c) processing
 
     # 1) no batches:
+    mu_1 = np.mean(st)
+    se_1 = np.std(st) / np.sqrt(len(st))
+    print("no batches:")
+    print(mu_1, se_1)
+    # 2) batches of size 2 and 10:
+
+    for K in [2, len(st) // 50]:
+        # Determine the number of batches
+        n_batches = len(st) // K
+
+        # Split x into batches and compute means
+        YB = [np.mean(st[i * K:(i + 1) * K]) for i in range(n_batches)]
+
+        mu = np.mean(YB)
+        se = np.std(YB) / np.sqrt(n_batches)
+
+        print("{} batches of size {}".format(n_batches, K))
+        print(mu, se)
+
+    # d)
+    for array in [st, wt]:
+        tau = 1.0
+        se_autocorrelation = 1/np.sqrt(len(array))
+        for lag in range(1, len(array)-1):
+            rho = pd.Series(array).autocorr(lag=lag)
+            if np.abs(rho) > 3 *se_autocorrelation:
+                tau += 2 * rho
+
+        print(tau)
+
+
+
+
 
 
 
