@@ -45,21 +45,23 @@ for param in [0.1, 0.3]:
     for lag in range(1, 9):
         print("autocorrelation for consecutive sojourn times, lag={}:".format(lag))
         print(pd.Series(st).autocorr(lag=lag))
+    print('standard error (est): {}'.format(1/np.sqrt(len(st))))
 
     for lag in range(1, 9):
         print("autocorrelation for weekly totals, lag={}:".format(lag))
         print(pd.Series(wt).autocorr(lag=lag))
+    print('standard error (est): {}'.format(1/np.sqrt(len(wt))))
 
     # c) processing
 
-    # 1) no batches:
-    mu_1 = np.mean(st)
-    se_1 = np.std(st) / np.sqrt(len(st))
-    print("no batches:")
-    print(mu_1, se_1)
+    # # 1) no batches:
+    # mu_1 = np.mean(st)
+    # se_1 = np.std(st) / np.sqrt(len(st))
+    # print("no batches:")
+    # print(mu_1, se_1)
     # 2) batches of size 2 and 10:
 
-    for K in [2, len(st) // 50]:
+    for K in [1, 2, len(st) // 50]:
         # Determine the number of batches
         n_batches = len(st) // K
 
@@ -73,11 +75,12 @@ for param in [0.1, 0.3]:
         print(mu, se)
 
     # d)
-    for array in [st, wt]:
+    for array in [st]:
         tau = 1.0
         se_autocorrelation = 1/np.sqrt(len(array))
-        for lag in range(1, len(array)-1):
+        for lag in range(1, 9):
             rho = pd.Series(array).autocorr(lag=lag)
+            # print(rho / se_autocorrelation)
             if np.abs(rho) > 3 *se_autocorrelation:
                 tau += 2 * rho
 
