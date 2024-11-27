@@ -2,6 +2,7 @@
 # Programmer: Ludolf Meester, Etienne Guichard
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # Reading data and setup list of edges
 filename = 'airport-graph.txt'
@@ -55,15 +56,10 @@ q = 0.2
 maxpathlen = 20
 breaches = 0
 
-ks = np.array([5, 8, 11, 14, 17])
-nvals = np.round(1 / ks**2 / sum(1/ks**2) * 1000)
+ks = np.arange(4, 9, 1)
+nvals = np.full(ks.size, 1000, dtype=int)
 
-while sum(nvals) > 1000:
-    nvals[0] = nvals[0] - 1
-while sum(nvals) < 1000:
-    nvals[0] = nvals[0] + 1
 
-nvals = np.array(nvals, dtype=int)
 print('sum of samples: {}'.format(sum(nvals)))
 prob_arr = []
 for nrep, k in zip(nvals, ks):
@@ -77,53 +73,81 @@ for nrep, k in zip(nvals, ks):
     breaches = 0
 
 prob_arr = np.array(prob_arr)
+se_arr = np.sqrt(prob_arr * (1-prob_arr) / 1000)
 
-prob_all = np.empty(len(edges), dtype=float)
-ks_all = np.arange(0, len(edges), 1)
+q = 0.01
+a_arr = np.array([q**k * (1-q)**(22 - k) * math.comb(22, k) for k in ks])
 
-prob_all[0:4] = 0.0 # k<4 -> prob is zero
-prob_all[19:] = 1.0 # k > 19 -> prob is one
-prob_all[ks-1] = prob_arr
+print(a_arr)
+print(prob_arr)
+print(se_arr)
 
-where_interp = [k for k in np.arange(4, 19, 1) if k not in ks-1]
-where_known = [k for k in ks_all if k not in where_interp]
+phat = np.dot(a_arr, prob_arr)
 
-prob_interpolated = np.interp(ks_all[where_interp], ks_all[where_known], prob_all[where_known], left=0, right=1)
-prob_all[where_interp] = prob_interpolated
+se_tot = np.sqrt(
+    np.dot(a_arr**2, se_arr**2)
+)
 
-qs = [1e-3, 2e-3, 5e-3, 7e-3, 1e-2, 2e-2, 5e-2, 7e-2, 0.1, 0.2]
-pbs = [0.0]*len(qs)
-N = len(edges)
-for index, q in enumerate(qs):
-    for k in ks_all:
-        p_y_eq_k = q**k * (1-q)**(N - k)
-        p_b_given_y = prob_all[k-1]
-        pbs[index] += p_b_given_y*p_y_eq_k
+print(phat)
+print(se_tot)
 
-print(qs, pbs)
+se_rel = se_tot / phat
 
+target_ses_rel = np.array([0.1, 0.01])
 
-plt.style.use('ggplot')
-fig, ax = plt.subplots()
+ns = 1000 * (se_rel / target_ses_rel) ** 2
 
-for k in ks:
-    ax.axvline(k, color='k', linestyle='dashed')
-for k in [3, 20]:
-    ax.axvline(k, color='b', linestyle='dashed')
+print(se_rel)
+print(ns)
 
-ax.plot(ks_all+1, prob_all)
-ax.set_xlabel('$k$')
-ax.set_ylabel('$P(B|Y=k)$')
-ax.set_xlim(0, len(edges))
-plt.show()
-plt.clf()
-plt.close()
+# prob_all = np.empty(len(edges), dtype=float)
+# ks_all = np.arange(0, len(edges), 1)
+#
+# prob_all[0:4] = 0.0 # k<4 -> prob is zero
+# prob_all[19:] = 1.0 # k > 19 -> prob is one
+# prob_all[ks-1] = prob_arr
+#
+# where_interp = [k for k in np.arange(4, 19, 1) if k not in ks-1]
+# where_known = [k for k in ks_all if k not in where_interp]
+#
+# prob_interpolated = np.interp(ks_all[where_interp], ks_all[where_known], prob_all[where_known], left=0, right=1)
+# prob_all[where_interp] = prob_interpolated
 
-fig, ax = plt.subplots()
+# qs = [1e-3, 2e-3, 5e-3, 7e-3, 1e-2, 2e-2, 5e-2, 7e-2, 0.1, 0.2]
+# pbs = [0.0]*len(qs)
+# N = len(edges)
+# for index, q in enumerate(qs):
+#     for k in ks_all:
+#         if k == 0:
+#             continue
+#         p_y_eq_k = q**k * (1-q)**(N - k) * math.comb(N, k)
+#         p_b_given_y = prob_all[k-1]
+#         pbs[index] += p_b_given_y*p_y_eq_k
+#
+# print(qs, pbs)
+#
+#
+# plt.style.use('ggplot')
+# fig, ax = plt.subplots()
+#
+# for k in ks:
+#     ax.axvline(k, color='k', linestyle='dashed')
+# for k in [3, 20]:
+#     ax.axvline(k, color='b', linestyle='dashed')
+#
+# ax.plot(ks_all+1, prob_all)
+# ax.set_xlabel('$k$')
+# ax.set_ylabel('$P(B|Y=k)$')
+# ax.set_xlim(0, len(edges))
+# plt.show()
+# plt.clf()
+# plt.close()
 
-ax.plot(qs, pbs)
-ax.set_xlabel('$q$')
-ax.set_ylabel('$P(B)$')
-ax.set_xscale('log')
-plt.show()
+# fig, ax = plt.subplots()
+#
+# ax.plot(qs, pbs)
+# ax.set_xlabel('$q$')
+# ax.set_ylabel('$P(B)$')
+# ax.set_xscale('log')
+# plt.show()
 
