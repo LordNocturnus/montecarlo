@@ -2,9 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+import os
+
 from src.simulation import Simulation
 
 plt.style.use("ggplot")
+
+if not os.path.isdir("results"):
+    os.mkdir("results")
 
 for param in [0.1, 0.3]:
 
@@ -27,6 +32,7 @@ for param in [0.1, 0.3]:
     df.to_csv("results/weekly_total_{}.csv".format(param), index=False)
 
     st = sim.sojourn_times
+    print(len(st)-1)
     wt = sim.weekly_total_sojourn()
 
     # a) plot consecutive pairs
@@ -37,9 +43,40 @@ for param in [0.1, 0.3]:
     ax.set_ylabel('$s_{j+1}$ [days]')
 
     plt.savefig('results/sojourn_pairs_{}.png'.format(param))
+    plt.show()
     plt.clf()
 
-    # b) autocorrelations
+    s1_25 = st[:-1][np.logical_and(st[1:] >= 0.25, st[1:] < 0.3)]
+    print(len(s1_25))
+    s2_25 = st[1:][np.logical_and(st[:-1] >= 0.25, st[:-1] < 0.3)]
+    print(len(s2_25))
+
+    fig, ax = plt.subplots()
+    ax.hist([s1_25, s2_25], density=True, histtype="bar", label=["0.25<=$S_{j+1}$<0.3", "0.25<=$S_{j}$<0.3"])
+    ax.set_xlabel('$s_j$ [days]')
+    ax.set_ylabel('probability [-]')
+    ax.legend()
+
+    plt.savefig('results/conditional_25_{}.png'.format(param))
+    plt.show()
+    plt.clf()
+
+    s1_25 = st[:-1][np.logical_and(st[1:] >= 0.5, st[1:] < 0.6)]
+    print(len(s1_25))
+    s2_25 = st[1:][np.logical_and(st[:-1] >= 0.5, st[:-1] < 0.6)]
+    print(len(s2_25))
+
+    fig, ax = plt.subplots()
+    ax.hist([s1_25, s2_25], density=True, histtype="bar", label=["0.5<=$S_{j+1}$<0.55", "0.5<=$S_{j}$<0.55"])
+    ax.set_xlabel('$s_j$ [days]')
+    ax.set_ylabel('probability [-]')
+    ax.legend()
+
+    plt.savefig('results/conditional_5_{}.png'.format(param))
+    plt.show()
+    plt.clf()
+
+    """# b) autocorrelations
 
 
     for lag in range(1, 9):
@@ -86,15 +123,9 @@ for param in [0.1, 0.3]:
 
         print(tau)
 
-
-
-
-
-
-
-    # pd.plotting.autocorrelation_plot(st, marker='x')
-    # plt.xlim(1, 8)
-    # plt.show()
+    #pd.plotting.autocorrelation_plot(st, marker='x')
+    #plt.xlim(1, 8)
+    #plt.show()"""
 
 
 
