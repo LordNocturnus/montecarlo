@@ -1,19 +1,26 @@
 import numpy.random as npr
-import simpy
 
 
 class Aircraft:
 
-    def __init__(self, repair_shop, env, idx, rng, printing=True):
+    def __init__(self, repair_shop, env, seed, exp_parameter, sojourn_time_pointer, end_times_pointer, limit = 500*7,  printing=False):
         self.env = env
         self.repair_shop = repair_shop
-        self.rng = rng
+        self.rng = npr.default_rng(seed)
         self.printing = printing
-        self.id = idx
+        self.id = seed
+        self.sojourn_time = sojourn_time_pointer
+        self.repair_end_time = end_times_pointer
+
+        self.exp_parameter = exp_parameter
+
+        self.limit = limit
 
         self.flight_time = 0.0
         self.wait_time = 0.0
         self.repair_time = 0.0
+
+        self.state = 0 # 0 => flying, 1 => waiting 2 => being repaired
 
         self.action = self.env.process(self.run())
 
@@ -21,49 +28,44 @@ class Aircraft:
     def down_time(self):
         return self.wait_time + self.repair_time
 
-    def run(self, limit=7):
+    def run(self):
 
-        while self.env.now <= limit:
-            start = self.env.now
+        while self.env.now <= self.limit:
+
+            self.start = self.env.now
             if self.printing:
                 print(f"{self.env.now}: Aicraft {self.id} flying")
+            self.state = 0
             # Airraft is in flight
-            try:
-                yield self.env.timeout(self.rng.exponential(1/0.2))
-            except simpy.Interrupt:
-                if self.printing:
-                    print(f"{self.env.now}: Aicraft {self.id} terminated")
-                break
-            self.flight_time += self.env.now - start
+            yield self.env.timeout(self.rng.exponential(1/self.exp_parameter))
+            self.flight_time += self.env.now - self.start
 
             with self.repair_shop.request() as req:
-                start = self.env.now
+                self.start = self.env.now
                 if self.printing:
                     print(f"{self.env.now}: Aicraft {self.id} waiting")
+                self.state = 1
                 # Airraft is waiting for repair
-                try:
-                    yield req
-                except simpy.Interrupt:
-                    if self.printing:
-                        print(f"{self.env.now}: Aicraft {self.id} continuing waiting")
-                    yield req
-                self.wait_time += self.env.now - start
+                yield req
+                self.wait_time = self.env.now - self.start
 
-                start = self.env.now
+                self.start = self.env.now
                 if self.printing:
                     print(f"{self.env.now}: Aicraft {self.id} repairing")
                 # Airraft is being repaired
-                repair_time = self.rng.normal(0.25, 0.05)
-                try:
-                    yield self.env.timeout(repair_time)
-                except simpy.Interrupt:
-                    if self.printing:
-                        print(f"{self.env.now}: Aicraft {self.id} continuing repairing")
-                    yield self.env.timeout(repair_time - self.env.now + start)
-                self.repair_time += repair_time
+                self.state = 2
+                yield self.env.timeout(self.rng.normal(0.25, 0.05))
 
+                self.repair_time = self.env.now - self.start
 
-def interrupt(env, aircrafts, limit=7):
-    yield env.timeout(limit)
-    for a in aircrafts:
-        a.action.interrupt()
+                self.sojourn_time.append(self.repair_time + self.wait_time)  # append the (shared sequence with current sojourn time)
+                self.repair_end_time.append(self.env.now)
+
+    def post_process(self, limit=7):
+        # run for each aircraft after each simulation
+        if self.state == 0:
+            self.flight_time += limit - self.start
+        elif self.state == 1:
+            self.wait_time += limit - self.start
+        elif self.state == 2:
+            self.repair_time += limit - self.start
