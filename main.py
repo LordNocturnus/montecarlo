@@ -54,7 +54,7 @@ for param in [0.1, 0.3]:
     fig, ax = plt.subplots()
     ax.hist([s1_25, s2_25], density=True, histtype="bar", label=["0.25<=$S_{j+1}$<0.3", "0.25<=$S_{j}$<0.3"])
     ax.set_xlabel('$s_j$ [days]')
-    ax.set_ylabel('probability density [-]')
+    ax.set_ylabel('probability density [$\\frac{1}{days}$]')
     ax.legend()
 
     plt.savefig('results/conditional_25_{}.png'.format(param))
@@ -69,7 +69,7 @@ for param in [0.1, 0.3]:
     fig, ax = plt.subplots()
     ax.hist([s1_25, s2_25], density=True, histtype="bar", label=["0.5<=$S_{j+1}$<0.55", "0.5<=$S_{j}$<0.55"])
     ax.set_xlabel('$s_j$ [days]')
-    ax.set_ylabel('probability density [-]')
+    ax.set_ylabel('probability density [$\\frac{1}{days}$]')
     ax.legend()
 
     plt.savefig('results/conditional_5_{}.png'.format(param))
