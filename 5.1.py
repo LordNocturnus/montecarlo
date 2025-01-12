@@ -19,7 +19,7 @@ def prob_i_minus_one(i):
 
 
 # print(moment_func(1))
-for n in range(5, 6):
+for n in range(3, 10):
     # for m in range(n-1, n+1):
     m = n-1
     p_actual = prob_i_minus_one(n)
@@ -33,7 +33,7 @@ for n in range(5, 6):
     print('(n,m) = ({}, {})'.format(n, m))
 
     m=n
-    p_actual = prob_i_minus_one(n)
+    p_actual = moment_func(m)
     p_approx = binomial_prob(m, n=n)
     error = np.abs(p_actual - p_approx)
     error_rel = error / p_actual
